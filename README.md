@@ -17,11 +17,17 @@
 #First the libraries needed for the code to run are imported
 
 from Bio import SeqIO
+
 import pandas as pd
+
 import seaborn as sns
+
 import numpy as np
+
 import scipy.stats as stats
+
 from sklearn.model_selection import train_test_split
+
 from sklearn.linear_model import LinearRegression
 
 #and the FASTA file read in 
@@ -36,8 +42,11 @@ print(f"Number of sequences in fasta_file = {len(records)}")
 #Here I have created a function that can caluculate the percentage of the amino acid sequence made up of C (cysteine)
 
 def calculate_cysteine_percentage(sequence):
+    
     c_count = sequence.upper().count('C')
+    
     total_aa_count = len(sequence)
+    
     return (c_count / total_aa_count) * 100.0 
 
 #Now I will run through the fasta file and calculate the C content percentage for each sequence as well as its length and put it into a new dataframe called effector_df
@@ -45,25 +54,33 @@ def calculate_cysteine_percentage(sequence):
 #Creating lists to store the cysteine content and length of each sequence
 
 sequence_IDs = []
+
 cysteine_content = []
+
 sequence_lengths = []
 
 #Go through the fasta file using the calculate_cysteine_percentage function
 
 for record in SeqIO.parse("FastaFile.fa", "fasta"):
+   
     sequence_ID = record.id
+   
     C_content = calculate_cysteine_percentage(record.seq)
+    
     sequence_length = len(record.seq) #measures the number of amino acids in sequence
 
 #Adding data into the lists
     
     sequence_IDs.append(sequence_ID)
+   
     cysteine_content.append(C_content)
+   
     sequence_lengths.append(sequence_length)
 
 #Create a new Data Frame from the lists
 
 effector_df = pd.DataFrame({'Sequence ID': sequence_IDs, 'Cysteine Content': cysteine_content, 'Sequence Length': sequence_lengths})
+
 print(effector_df)
 
 #I will now filter the new effector_df for proteins with a length shorter than 200 amino acids
@@ -73,8 +90,11 @@ small_protein = effector_df[effector_df["Sequence Length"] < 200]
 #And now combine the length filter with a filter for high cysteine content (over 2%) - these are my predicted effector proteins
 
 predicted_effector = small_protein[small_protein["Cysteine Content"] >2]
+
 predicted_effector
+
 predicted_effector.count()
+
 #This has returned 49 potential effector proteins out of the fasta file
 
 
@@ -84,7 +104,9 @@ predicted_effector.count()
 #From the new dataframe of predicted effectors I then decided to look at the distribution of cysteien content and sequence length across the samples.
 
 sns.displot(
+   
     data=predicted_effector,
+   
     x="Cysteine Content",
 )
 
@@ -93,7 +115,9 @@ sns.displot(
 #Next I looked at the distribution of sequence lengths:
 
 sns.displot(
+   
     data=predicted_effector,
+   
     x="Sequence Length",
 )
 
@@ -102,8 +126,11 @@ sns.displot(
 #My next hypothesis was that there could be a correlation between length and cysteine content in my predicted effectors. It is possible that smaller proteins have higher a cysteine content to avoid digestion in the apoplast. Smaller proteins are more easily digested ad therefore a greater amount of disulphde bridges could help protect small proteins from degreation. To investigate this I plotted a scatterplot to visualise the relationship:
 
 sns.relplot(
+   
     data=predicted_effector,
+   
     x="Sequence Length",
+   
     y="Cysteine Content",
 )
 
@@ -112,11 +139,13 @@ sns.relplot(
 #I then looked at whether I could create a model to predict the cysteine content based on the sequences length:
 
 X = predicted_effector[["Sequence Length"]] 
+
 y = predicted_effector["Cysteine Content"]
 
 train_X, test_X, train_y, test_y = train_test_split(X, y) #split into test/training set
 
 model = LinearRegression(fit_intercept=True)
+
 model.fit(train_X, train_y)
 
 model.score(test_X, test_y)
@@ -126,11 +155,13 @@ model.score(test_X, test_y)
 #To see if this was the case I checked the strength of the correlation by calculating the correlation coeficient:
 
 corr = np.corrcoef(predicted_effector["Sequence Length"], predicted_effector["Cysteine Content"])
+
 print(corr)
 
 #This shows a very weak negative correlation (-0.09) between length and cysteine content but this doesnt provide a p-value to show whether this relationship is significant. Instead, below I used the scipy package to calculate the correlation coefficient and the related p-value:
 
 r = stats.pearsonr(predicted_effector["Sequence Length"], predicted_effector["Cysteine Content"])
+
 print(r)
 
 #Now we can see a p-value which shows that this correlation is non-significant (p>0.05) which therefore could explain why the model didn't ahve a very high accuracy score.
