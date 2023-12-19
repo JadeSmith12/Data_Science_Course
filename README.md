@@ -16,19 +16,19 @@
 
 #First the libraries needed for the code to run are imported
 
-from Bio import SeqIO
+ from Bio import SeqIO
 
-import pandas as pd
+ import pandas as pd
 
-import seaborn as sns
+ import seaborn as sns
 
-import numpy as np
+ import numpy as np
 
-import scipy.stats as stats
+ import scipy.stats as stats
 
-from sklearn.model_selection import train_test_split
+ from sklearn.model_selection import train_test_split
 
-from sklearn.linear_model import LinearRegression
+ from sklearn.linear_model import LinearRegression
 
 #and the FASTA file read in 
 
